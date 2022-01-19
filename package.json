@@ -1,0 +1,36 @@
+{
+  "name": "chatbotqueueorchestrator",
+  "version": "1.0.0",
+  "description": "ChatbotQueueOrchestrator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wlckconsulting/ChatbotQueueOrchestrator.git"
+  },
+  "author": "Alan Wilckay Junior",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wlckconsulting/ChatbotQueueOrchestrator/issues"
+  },
+  "homepage": "https://github.com/wlckconsulting/ChatbotQueueOrchestrator#readme",
+  "dependencies": {
+    "body-parser": "^1.19.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.2",
+    "firebase": "^9.6.1",
+    "firebase-admin": "^10.0.1",
+    "moment": "^2.29.1",
+    "nodemon": "^2.0.15",
+    "path": "^0.12.7",
+    "uuid": "^8.3.2",
+    "uuidv1": "^1.6.14"
+  },
+  "devDependencies": {
+    "axios": "^0.25.0",
+    "formidable": "^2.0.1"
+  }
+}
