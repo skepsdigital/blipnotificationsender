@@ -1,13 +1,18 @@
 const uuid = require('uuid');
 const axios = require('axios');
 
-module.exports.sendNotification = async (botKey, phone) => {
+module.exports.sendNotification = async (botKey, chabotid, phone, namespace, templatename, userData) => {
     try {
         let user = await this.getUserIdentifier(botKey, phone);
 
         if(!user) throw new Error('Falha ao buscar identificador do usuário');
 
-        await this.triggerNotification(botKey, user, 'doakodosa', '231321');
+        await this.triggerNotification(botKey, user, namespace, templatename);
+
+        await this.setUserMasterState(botKey, user, chabotid);
+        await this.setUserState(botKey, user);
+
+        await this.setUserDetails(botKey, user, userData);
         
         return user;
     } catch(e) {
@@ -85,5 +90,74 @@ module.exports.triggerNotification = async (botKey, userIdentifier, namespace, t
 
     } catch(e) {
         throw new Error('Falha ao enviar notificação');
+    }
+}
+
+module.exports.setUserMasterState = async (botKey, userIdentifier, botId) => {
+    try {
+        let result = await axios.post('https://http.msging.net/commands', {
+            "id": uuid.v1(),
+            "method": "set",
+            "uri": "/contexts/" + userIdentifier + "/master-state",
+            "type": "text/plain",
+            "resource": botId + "@msging.net"
+          }, { 
+                headers: {
+                    'Authorization': 'Key ' + botKey
+                } 
+            }
+        );
+        
+        return result;
+    } catch(e) {
+        throw new Error('Falha ao estado master status do usuário');
+    }
+}
+
+module.exports.setUserState = async (botKey, userIdentifier, flowId = 'a85b9a04-da94-446f-8083-81278fa75a34') => {
+    try {
+        let result = await axios.post('https://http.msging.net/commands',
+            {
+                "id": uuid.v1(),
+                "method": "set",
+                "uri": "/contexts/" + userIdentifier + "/stateid%40" + flowId,
+                "type": "text/plain",
+                "resource": "06c03812-ed0b-4b43-9319-70fc5681da40"
+            }, { 
+                headers: {
+                    'Authorization': 'Key ' + botKey
+                } 
+            }
+        );
+        return result;
+    } catch(e) {
+        throw new Error('Falha ao atualizar estado do usuário');
+    }
+}
+
+module.exports.setUserDetails = async(botKey, userIdentifier, userData) => {
+    try {
+        
+        let result = await axios.post('https://http.msging.net/commands',
+        {
+            "id": uuid.v1(),
+            "method": "merge",
+            "uri": "/contacts",
+            "type": "application/vnd.lime.contact+json",
+            "resource": {
+                "identity": userIdentifier,
+                "extras": userData
+            }
+        },
+        { 
+            headers: {
+                'Authorization': 'Key ' + botKey,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        return result;
+    } catch(e) {
+        throw new Error('Erro ao atualizar detalhes do usuário');
     }
 }
