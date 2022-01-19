@@ -7,13 +7,15 @@ module.exports.sendNotification = async (botKey, chabotid, phone, namespace, tem
 
         if(!user) throw new Error('Falha ao buscar identificador do usuário');
 
-        await this.triggerNotification(botKey, user, namespace, templatename);
+        await this.triggerNotification(botKey, user, namespace, templatename, userData.templateParams);
+
+        if(userData.contactExtras) {
+            await this.setUserDetails(botKey, user, userData.contactExtras);
+        }
 
         await this.setUserMasterState(botKey, user, chabotid);
-        await this.setUserState(botKey, user);
+        await this.setUserState(botKey, user, userData.flowId, userData.stateId);
 
-        await this.setUserDetails(botKey, user, userData);
-        
         return user;
     } catch(e) {
         throw new Error('Falha ao enviar notificação');
@@ -47,8 +49,39 @@ module.exports.getUserIdentifier = async (botKey, phone) => {
     }
 }
 
-module.exports.triggerNotification = async (botKey, userIdentifier, namespace, templateName) => {
+module.exports.triggerNotification = async (botKey, userIdentifier, namespace, templateName, params) => {
     try {
+        let body = {
+            "id": uuid.v1(),
+            "to": userIdentifier,
+            "type":"application/json",
+            "content":
+            {
+                "type":"template",
+                "template":
+                {
+                    "namespace": namespace,
+                    "name": templateName,
+                    "language":{
+                        "code":"pt_BR",
+                        "policy":"deterministic"
+                    },
+                    "components":[]
+                }
+            }
+        };
+
+        for(let param of params) {
+            body['content']['template']['components'].push({
+                "type": "body",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": param
+                    }
+                ]
+            })
+        }
         
         let result = await axios.post('https://http.msging.net/messages',
             {
@@ -114,7 +147,7 @@ module.exports.setUserMasterState = async (botKey, userIdentifier, botId) => {
     }
 }
 
-module.exports.setUserState = async (botKey, userIdentifier, flowId = 'a85b9a04-da94-446f-8083-81278fa75a34') => {
+module.exports.setUserState = async (botKey, userIdentifier, flowId, stateId) => {
     try {
         let result = await axios.post('https://http.msging.net/commands',
             {
